@@ -363,7 +363,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   minMouseDelta: 0.1
-  driftAngle: 0.97
+  driftAngle: 20
   runeLibrary: {fileID: 1322090699}
   mouseDeltaCurve:
     serializedVersion: 2
