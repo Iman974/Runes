@@ -293,7 +293,7 @@ TrailRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
-  m_Time: 1
+  m_Time: 3
   m_Parameters:
     serializedVersion: 3
     widthMultiplier: 1
@@ -363,8 +363,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   minMouseDelta: 0.1
-  driftAngle: 20
-  turnDistance: 0.3
+  driftAngle: 18
+  turnDistance: 0.2
   runeLibrary: {fileID: 1322090699}
   mouseDeltaCurve:
     serializedVersion: 2
