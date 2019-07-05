@@ -21,9 +21,11 @@ public class RuneDrawer : MonoBehaviour {
     public AnimationCurve mouseDeltaCurve;
     float timeSinceDrawing;
     List<float> angles = new List<float>();
-    List<(Vector2 origin, Vector2 vector)> averageVectors = new List<(Vector2, Vector2)>();
+    List<Vector2> averageVectors = new List<Vector2>();
+    List<Vector2> origins = new List<Vector2>();
     //List<float> realAngles = new List<float>();
     bool isTurning;
+    float coefficientTotal;
 
     void Start() {
         mainCamera = Camera.main;
@@ -77,9 +79,9 @@ public class RuneDrawer : MonoBehaviour {
                 if (!isTurning) {
                     turnStart = previousMousePos;
                     isTurning = true;
-                    Debug.DrawRay(turnStart + Vector3.left * turnDistance, Vector3.right * turnDistance * 2f, Color.red, 3f);
-                    Debug.DrawRay(turnStart + Vector3.up * turnDistance, Vector3.down * turnDistance * 2f, Color.red, 3f);
-                    Debug.DrawRay(mouseStartPos, dragFromStart, Color.red, 3f);
+                    Debug.DrawRay(turnStart + Vector3.left * turnDistance, Vector3.right * turnDistance * 2f, Color.red, 4f);
+                    Debug.DrawRay(turnStart + Vector3.up * turnDistance, Vector3.down * turnDistance * 2f, Color.red, 4f);
+                    Debug.DrawRay(mouseStartPos, dragFromStart, Color.red, 4f);
                 }
                 if ((currentMousePos - turnStart).magnitude < turnDistance) {
                     return;
@@ -87,40 +89,56 @@ public class RuneDrawer : MonoBehaviour {
                 isTurning = false;
                 Debug.LogWarning("Direction change detected! ");
 
-                float averageAngle = angles.Average();
+                float averageAngle = angles.Sum() / coefficientTotal;
                 if (turnStart.x < mouseStartPos.x) {
                     //Debug.Log("On the left");
                     averageAngle = Mathf.PI - averageAngle;
                 }
                 Vector3 averageVector = new Vector3(Mathf.Cos(averageAngle), Mathf.Sin(averageAngle)) * dragFromStart.magnitude;
-                averageVectors.Add((mouseStartPos, averageVector));
-                Debug.DrawRay(mouseStartPos, averageVector, Color.cyan, 2.5f);
+                averageVectors.Add(averageVector);
+                origins.Add(mouseStartPos);
+                //Debug.DrawRay(mouseStartPos, averageVector, Color.magenta, 2.5f);
                 angles.Clear();
+                coefficientTotal = 0f;
                 //timeSinceDrawing = 0f;
                 mouseStartPos = previousMousePos;
 
                 int avgVectorsCount = averageVectors.Count;
-                if (avgVectorsCount % 2 == 0) {
-                    (Vector2 origin1, Vector2 first) = averageVectors[avgVectorsCount - 2];
-                    (Vector2 origin2, Vector2 second) = averageVectors[avgVectorsCount - 1];
-                    float denominator = second.x * first.y - first.x * second.y;
+                if (avgVectorsCount >= 2) {
+                    Vector2 first = averageVectors[avgVectorsCount - 2];
+                    Vector2 origin1 = origins[avgVectorsCount - 2];
+                    Vector2 second = averageVectors[avgVectorsCount - 1];
+                    Vector2 origin2 = origins[avgVectorsCount - 1];
+                    float denominator = 1f / (second.x * first.y - first.x * second.y);
                     Vector2 intersection = new Vector2 {
                         x = (first.x * (second.x * origin2.y - second.y * origin2.x - second.x * origin1.y) +
-                        second.x * first.y * origin1.x) / denominator,
+                        second.x * first.y * origin1.x) * denominator,
                         y = (first.y * (second.x * origin2.y - second.y * origin2.x + second.y * origin1.x) -
-                        first.x * origin1.y * second.y) / denominator
+                        first.x * origin1.y * second.y) * denominator
                     };
-                    Debug.DrawLine(Vector3.zero, intersection, Color.white, 5f);
+                    averageVectors[avgVectorsCount - 2] = intersection - origin1;
+                    averageVectors[avgVectorsCount - 1] = origin2 + second - intersection;
+                    //Debug.DrawRay(origin1, intersection - origin1, Color.yellow, 3f);
+                    //Debug.DrawRay(intersection, origin2 + second - intersection, Color.magenta, 3f);
+                    //Debug.DrawLine(Vector3.zero, origin1, Color.blue, 5f);
+                    //Debug.DrawLine(Vector3.zero, origin2, Color.white, 5f);
+                    //Debug.DrawLine(Vector3.zero, intersection, Color.cyan, 4f);
+                    origins[avgVectorsCount - 1] = intersection;
                 }
             } else {
                 float mouseDeltaAngle = Mathf.Atan2(mouseDelta.y, mouseDelta.x);
                 mouseDeltaAngle = Mathf.Sign(mouseDeltaAngle) * Mathf.PingPong(mouseDeltaAngle, Mathf.PI * 0.5f);
-                angles.Add(mouseDeltaAngle);
+                float magn = mouseDelta.magnitude;
+                angles.Add(mouseDeltaAngle * magn);
+                coefficientTotal += magn;
             }
         } else if (Input.GetMouseButtonUp(0)) {
             //float realAvg = realAngles.Average();
             //Vector3 realAvgVector = new Vector3(Mathf.Cos(realAvg), Mathf.Sin(realAvg));
             //Debug.DrawRay(Vector3.zero, realAvgVector * 3f, Color.red, 2.5f);
+            for (int i = 0; i < averageVectors.Count; i++) {
+                Debug.DrawRay(origins[i], averageVectors[i], Color.green, 3f);
+            }
             isDrawing = false;
         }
     }

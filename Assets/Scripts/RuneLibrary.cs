@@ -4,6 +4,7 @@ public class RuneLibrary : MonoBehaviour {
 
     [System.Serializable]
     public struct RuneSegment {
+
         [SerializeField] [Range(-179.99f, 180f)] float angle;
         [SerializeField] float length;
 
@@ -15,6 +16,7 @@ public class RuneLibrary : MonoBehaviour {
         }
     }
 
+    [SerializeField] Vector2 startPosition;
     [SerializeField] RuneSegment[] segments = null;
 
     public RuneSegment this[int index] => segments[index];
@@ -23,7 +25,7 @@ public class RuneLibrary : MonoBehaviour {
     private void OnDrawGizmosSelected() {
         Gizmos.color = Color.cyan;
 
-        Vector3 currentPosition = Vector3.zero;
+        Vector3 currentPosition = startPosition;
         for (int i = 0; i < segments.Length; i++) {
             Gizmos.DrawRay(currentPosition, segments[i].Vector);
             currentPosition += segments[i].Vector;

@@ -234,13 +234,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2c5e68ff0836e124b8a943befcc37988, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  startPosition: {x: -5.66, y: -2.83}
   segments:
   - angle: 45
-    length: 2
+    length: 8
   - angle: -45
-    length: 2
+    length: 8
   - angle: -179.99
-    length: 1.76
+    length: 5.66
 --- !u!4 &1322090700
 Transform:
   m_ObjectHideFlags: 0
@@ -293,7 +294,7 @@ TrailRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
-  m_Time: 3
+  m_Time: 4
   m_Parameters:
     serializedVersion: 3
     widthMultiplier: 1
@@ -302,7 +303,7 @@ TrailRenderer:
       m_Curve:
       - serializedVersion: 3
         time: 0
-        value: 0.15151405
+        value: 0.101009
         inSlope: 0
         outSlope: 0
         tangentMode: 0
