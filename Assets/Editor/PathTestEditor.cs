@@ -25,11 +25,13 @@ public class PathTestEditor : Editor {
             return;
         }
         Event currentEvent = Event.current;
+        List<Vector2> pointsToEdit = pathTest.showWhichPoints == PathTest.ShowType.Template ?
+            templateRawPoints : userRawPoints;
 
         // Select closest point if none is currently selected
         if (pointIndex == -1) {
             for (int i = 0; i < templateRawPoints.Count; i++) {
-                Vector2 GUIpoint = HandleUtility.WorldToGUIPoint(templateRawPoints[i]);
+                Vector2 GUIpoint = HandleUtility.WorldToGUIPoint(pointsToEdit[i]);
                 if ((currentEvent.mousePosition - GUIpoint).sqrMagnitude <= kMousePixelDistance *
                         kMousePixelDistance) {
                     pointIndex = i;
@@ -48,10 +50,10 @@ public class PathTestEditor : Editor {
         }
 
         EditorGUI.BeginChangeCheck();
-        Vector2 newPoint = Handles.PositionHandle(templateRawPoints[pointIndex], Quaternion.identity);
+        Vector2 newPoint = Handles.PositionHandle(pointsToEdit[pointIndex], Quaternion.identity);
         if (EditorGUI.EndChangeCheck()) {
             Undo.RecordObject(pathTest, "Changed point " + pointIndex);
-            templateRawPoints[pointIndex] = newPoint;
+            pointsToEdit[pointIndex] = newPoint;
         } else if (!isMouseDown) {
             pointIndex = -1;
         }
@@ -59,7 +61,7 @@ public class PathTestEditor : Editor {
 
     [DrawGizmo(GizmoType.Selected)]
     static void DrawNodesGizmos(PathTest pathTest, GizmoType gizmoType) {
-        if (pathTest == null || !pathTest.ShowPoints) {
+        if (pathTest == null || !pathTest.showPoints) {
             return;
         }
 

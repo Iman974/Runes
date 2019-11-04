@@ -26,8 +26,14 @@ public class PathTest : MonoBehaviour {
             angle * Mathf.Rad2Deg + ", Result: " + final * Mathf.Rad2Deg);
     }
 
-    [SerializeField] bool showPoints = true;
-    public bool ShowPoints => showPoints;
+    [System.Serializable]
+    public enum ShowType {
+        User,
+        Template
+    }
+
+    public bool showPoints;
+    public ShowType showWhichPoints;
 
     private void OnDrawGizmosSelected() {
         if (template.RawPoints == null) {
@@ -37,6 +43,11 @@ public class PathTest : MonoBehaviour {
         Vector2[] rawTemplatePoints = template.RawPoints.ToArray();
         for (int i = 1; i < rawTemplatePoints.Length; i++) {
             Gizmos.DrawLine(rawTemplatePoints[i - 1], rawTemplatePoints[i]);
+        }
+        Gizmos.color = Color.yellow;
+        Vector2[] rawUserPoints = userStroke.RawPoints.ToArray();
+        for (int i = 1; i < rawUserPoints.Length; i++) {
+            Gizmos.DrawLine(rawUserPoints[i - 1], rawUserPoints[i]);
         }
     }
 }
