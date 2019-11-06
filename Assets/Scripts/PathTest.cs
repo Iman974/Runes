@@ -10,13 +10,15 @@ public class PathTest : MonoBehaviour {
     public List<Vector2> TemplateRawPoints => template.RawPoints;
     public List<Vector2> UserRawPoints => userStroke.RawPoints;
 
-    void Start() {
+    bool isRecording;
+
+    void Recognize() {
         List<Vector2> templatePoints = template.ProcessPoints();
         List<Vector2> userPoints = userStroke.ProcessPoints();
 
         // Recognize !
         float a = 0, b = 0;
-        for (int i = 0; i < Unistroke.kPointCount; i++) {
+        for (int i = 0; i < Unistroke.kProcessedPointCount; i++) {
             a += Vector2.Dot(templatePoints[i], userPoints[i]);
             b += (templatePoints[i].x * userPoints[i].y) - (templatePoints[i].y * userPoints[i].x);
         }
@@ -24,6 +26,33 @@ public class PathTest : MonoBehaviour {
         float final = Mathf.Acos(a * Mathf.Cos(angle) + b * Mathf.Sin(angle));
         Debug.LogWarning("a: " + a + ", b: " + b + ", angle: " +
             angle * Mathf.Rad2Deg + ", Result: " + final * Mathf.Rad2Deg);
+    }
+
+    void Update() {
+        var userRawPoints = userStroke.RawPoints;
+
+        if (Input.GetMouseButtonDown(0)) {
+            isRecording = true;
+            userStroke.RawPoints.Clear();
+        } else if (Input.GetMouseButton(0)) {
+            if (!isRecording) {
+                return;
+            }
+            if (InputUtility.MouseDelta.sqrMagnitude > 0.05f * 0.05f) {
+                userRawPoints.Add(Input.mousePosition);
+                int count = userRawPoints.Count;
+                if (count >= 2) {
+                    Debug.DrawLine(userRawPoints[count - 2], userRawPoints[count - 1], Color.magenta,
+                        Mathf.Infinity);
+                }
+            } else if (userRawPoints.Count > 0) {
+                isRecording = false;
+                Debug.LogWarning("Stopped the recording");
+            }
+        } else if (Input.GetMouseButtonUp(0)) {
+            isRecording = false;
+            Recognize();
+        }
     }
 
     [System.Serializable]

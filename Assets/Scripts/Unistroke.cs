@@ -6,7 +6,7 @@ public class Unistroke {
 
     [SerializeField] List<Vector2> rawPoints = new List<Vector2>();
 
-    public const int kPointCount = 32;
+    public const int kProcessedPointCount = 32;
 
     public List<Vector2> RawPoints => rawPoints;
 
@@ -42,10 +42,10 @@ public class Unistroke {
     }
 
     List<Vector2> Resample() {
-        float interval = GetPathLength(rawPoints) / (kPointCount - 1);
+        float interval = GetPathLength(rawPoints) / (kProcessedPointCount - 1);
         float D = 0f;
         List<Vector2> sourcePoints = new List<Vector2>(rawPoints);
-        List<Vector2> resultPoints = new List<Vector2>(kPointCount);
+        List<Vector2> resultPoints = new List<Vector2>(kProcessedPointCount);
         resultPoints.Add(sourcePoints[0]);
 
         for (int i = 1; i < sourcePoints.Count; i++) {
@@ -70,7 +70,7 @@ public class Unistroke {
             }
         }
 
-        if (resultPoints.Count == kPointCount - 1) {
+        if (resultPoints.Count == kProcessedPointCount - 1) {
             resultPoints.Add(sourcePoints[sourcePoints.Count - 1]);
         }
         return resultPoints;
