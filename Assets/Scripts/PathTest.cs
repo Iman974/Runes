@@ -11,6 +11,11 @@ public class PathTest : MonoBehaviour {
     public List<Vector2> UserRawPoints => userStroke.RawPoints;
 
     bool isRecording;
+    Camera mainCamera;
+
+    void Start() {
+        mainCamera = Camera.main;
+    }
 
     void Recognize() {
         List<Vector2> templatePoints = template.ProcessPoints();
@@ -39,11 +44,11 @@ public class PathTest : MonoBehaviour {
                 return;
             }
             if (InputUtility.MouseDelta.sqrMagnitude > 0.05f * 0.05f) {
-                userRawPoints.Add(Input.mousePosition);
+                userRawPoints.Add(InputUtility.WorldMousePosition);
                 int count = userRawPoints.Count;
                 if (count >= 2) {
                     Debug.DrawLine(userRawPoints[count - 2], userRawPoints[count - 1], Color.magenta,
-                        Mathf.Infinity);
+                        2f);
                 }
             } else if (userRawPoints.Count > 0) {
                 isRecording = false;
@@ -62,7 +67,7 @@ public class PathTest : MonoBehaviour {
     }
 
     public bool showPoints;
-    public ShowType showWhichPoints;
+    public ShowType editWhichPoints;
 
     private void OnDrawGizmosSelected() {
         if (template.RawPoints == null) {

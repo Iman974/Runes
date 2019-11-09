@@ -384,6 +384,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1756236634}
   - component: {fileID: 1756236633}
+  - component: {fileID: 1756236635}
   m_Layer: 0
   m_Name: PathTest
   m_TagString: Untagged
@@ -405,20 +406,19 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   template:
     rawPoints:
-    - {x: 0.253626, y: -3.614159}
-    - {x: -1.1413131, y: -3.42394}
-    - {x: -2.0078669, y: -2.6207948}
-    - {x: -1.7331058, y: -1.458345}
-    - {x: 0.27476066, y: -1.5006164}
-    - {x: 2.282627, y: -0.5495217}
-    - {x: 2.7053354, y: 1.0779071}
-    - {x: 1.6908354, y: 2.240356}
-    - {x: -0.25362498, y: 2.2614915}
-    - {x: -1.1970915, y: 0.9954295}
+    - {x: 2.0590158, y: -0.02124951}
+    - {x: 1.450587, y: -1.3861707}
+    - {x: -0.023723006, y: -2.0309143}
+    - {x: -1.5543554, y: -1.2438432}
+    - {x: -2.1562629, y: 0.01877284}
+    - {x: -1.506909, y: 1.2916206}
+    - {x: 0.006184578, y: 2.0789165}
+    - {x: 1.4405818, y: 1.4002231}
+    - {x: 2.052271, y: -0.0086551905}
   userStroke:
     rawPoints: []
   showPoints: 0
-  showWhichPoints: 0
+  editWhichPoints: 1
 --- !u!4 &1756236634
 Transform:
   m_ObjectHideFlags: 0
@@ -433,3 +433,15 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 2
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1756236635
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1756236632}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 643e1721aeeab714c89fe1aac59bcab9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 

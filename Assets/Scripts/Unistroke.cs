@@ -15,12 +15,12 @@ public class Unistroke {
 
         // Only for debug purposes
         Vector2 centroid = ComputeCentroid(resampledPoints);
-        DrawCentroid(centroid, Color.cyan);
+        //DrawCentroid(centroid, Color.cyan);
 
         TranslateCentroidToOrigin(resampledPoints, centroid);
-        DrawCentroid(ComputeCentroid(resampledPoints), Color.green);
+        //DrawCentroid(ComputeCentroid(resampledPoints), Color.green);
         for (int i = 1; i < resampledPoints.Count; i++) {
-            Debug.DrawLine(resampledPoints[i - 1], resampledPoints[i], Color.green, Mathf.Infinity);
+            Debug.DrawLine(resampledPoints[i - 1], resampledPoints[i], Color.green, 2f);
         }
 
         float delta = -Mathf.Atan2(resampledPoints[0].y, resampledPoints[0].x);
@@ -34,9 +34,9 @@ public class Unistroke {
         float magnitude = Mathf.Sqrt(sum);
         for (int i = 0; i < resampledPoints.Count; i++) {
             resampledPoints[i] /= magnitude;
-            if (i > 0) {
-                Debug.DrawLine(resampledPoints[i - 1], resampledPoints[i], Color.red, Mathf.Infinity);
-            }
+            //if (i > 0) {
+            //    Debug.DrawLine(resampledPoints[i - 1], resampledPoints[i], Color.red, 2f);
+            //}
         }
         return resampledPoints;
     }
@@ -93,8 +93,8 @@ public class Unistroke {
     }
 
     void DrawCentroid(Vector2 pos, Color color) {
-        Debug.DrawRay(pos + (Vector2.left * 0.25f), Vector2.right * 0.5f, color, Mathf.Infinity);
-        Debug.DrawRay(pos + (Vector2.down * 0.25f), Vector2.up * 0.5f, color, Mathf.Infinity);
+        Debug.DrawRay(pos + (Vector2.left * 0.25f), Vector2.right * 0.5f, color, 2f);
+        Debug.DrawRay(pos + (Vector2.down * 0.25f), Vector2.up * 0.5f, color, 2f);
     }
 
     // Make move all the points so that the centroid is at the origin (0, 0)

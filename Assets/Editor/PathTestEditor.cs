@@ -25,9 +25,11 @@ public class PathTestEditor : Editor {
             return;
         }
         Event currentEvent = Event.current;
-        List<Vector2> pointsToEdit = pathTest.showWhichPoints == PathTest.ShowType.Template ?
+        List<Vector2> pointsToEdit = pathTest.editWhichPoints == PathTest.ShowType.Template ?
             templateRawPoints : userRawPoints;
-
+        if (pointsToEdit.Count == 0) {
+            return;
+        }
         // Select closest point if none is currently selected
         if (pointIndex == -1) {
             for (int i = 0; i < templateRawPoints.Count; i++) {
@@ -73,6 +75,9 @@ public class PathTestEditor : Editor {
         Gizmos.color = Color.white;
         for (int i = 0; i < templateRawPoints.Count; i++) {
             Gizmos.DrawSphere(templateRawPoints[i], 0.015f * zoomLevel);
+        }
+        for (int i = 0; i < userRawPoints.Count; i++) {
+            Gizmos.DrawSphere(userRawPoints[i], 0.015f * zoomLevel);
         }
     }
 }

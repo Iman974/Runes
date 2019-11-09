@@ -3,10 +3,13 @@
 public class InputUtility : MonoBehaviour {
 
     public static Vector2 MouseDelta => (Vector2)Input.mousePosition - LastMousePosition;
-
     public static Vector2 LastMousePosition { get; private set; }
+    public static Vector2 WorldMousePosition {
+        get { return mainCamera.ScreenToWorldPoint(Input.mousePosition); }
+    }
 
     static InputUtility instance;
+    static Camera mainCamera;
 
     void Awake() {
         #region Singleton
@@ -21,6 +24,8 @@ public class InputUtility : MonoBehaviour {
 
     void Start() {
         LastMousePosition = Input.mousePosition;
+        mainCamera = Camera.main;
+        UnityEngine.Assertions.Assert.IsNotNull(mainCamera, "Could not find camera.");
     }
 
     void LateUpdate() {
