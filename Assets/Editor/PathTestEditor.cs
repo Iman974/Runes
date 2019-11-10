@@ -52,7 +52,8 @@ public class PathTestEditor : Editor {
         }
 
         EditorGUI.BeginChangeCheck();
-        Vector2 newPoint = Handles.PositionHandle(pointsToEdit[pointIndex], Quaternion.identity);
+        Vector2 newPoint = Handles.FreeMoveHandle(pointsToEdit[pointIndex], Quaternion.identity,
+            0.1f, Vector3.zero, Handles.CylinderHandleCap);
         if (EditorGUI.EndChangeCheck()) {
             Undo.RecordObject(pathTest, "Changed point " + pointIndex);
             pointsToEdit[pointIndex] = newPoint;
