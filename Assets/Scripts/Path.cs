@@ -17,7 +17,7 @@ public class Path {
                 case 0:
                     // It is an anchor, so take care of its controls
                     Vector2 displacement = value - points[i];
-                    if (i != PointCount - 1) {
+                    if (i != points.Count - 1) {
                         points[i + 1] += displacement;
                     }
                     if (i != 0) {
@@ -30,11 +30,36 @@ public class Path {
                     }
                     break;
                 case 2:
-                    if (i != PointCount - 2) {
+                    if (i != points.Count - 2) {
                         points[i + 2] = (points[i + 1] * 2f) - points[i];
                     }
                     break;
             }
+            ////Another way of doing this
+            //int mod = i % 3;
+            //if (mod == 0) {
+            //    Vector2 displacement = value - points[i];
+            //    if (i != points.Count - 1) {
+            //        points[i + 1] += displacement;
+            //    }
+            //    if (i != 0) {
+            //        points[i - 1] += displacement;
+            //    }
+            //} else {
+            //    int correspondingControlIndex;
+            //    int anchorIndex;
+            //    if (mod == 1) {
+            //        correspondingControlIndex = i - 2;
+            //        anchorIndex = i - 1;
+            //    } else {
+            //        correspondingControlIndex = i + 2;
+            //        anchorIndex = i - 2;
+            //    }
+            //    if (anchorIndex != 0 && anchorIndex != points.Count - 1) {
+            //        points[correspondingControlIndex] = (points[anchorIndex] * 2f) - points[i];
+            //    }
+            //}
+
             points[i] = value;
         }
     }
@@ -57,7 +82,20 @@ public class Path {
         points.Add(anchorPos);
     }
 
+    public void DeleteSegment(int anchorIndex) {
+        if (anchorIndex != 0) {
+            if (anchorIndex != points.Count - 1) {
+                points.RemoveRange(anchorIndex - 1, 3);
+            } else {
+                points.RemoveRange(anchorIndex - 2, 3);
+            }
+        } else {
+            points.RemoveRange(anchorIndex, 3);
+        }
+    }
+
     public Vector2[] GetPointsInSegment(int i) {
-        return new Vector2[4] { points[i*3], points[i*3 + 1], points[i*3 + 2], points[i*3 + 3] };
+        return new Vector2[4] { points[i*3], points[i*3 + 1],
+            points[i*3 + 2], points[i*3 + 3] };
     }
 }

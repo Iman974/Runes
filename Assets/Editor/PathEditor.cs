@@ -1,12 +1,13 @@
 ﻿using UnityEngine;
 using UnityEditor;
-using System.Collections.Generic;
 
 [CustomEditor(typeof(PathCreator))]
 public class PathEditor : Editor {
 
     PathCreator creator;
     Path path;
+
+    const float kAnchorHandleSize = 0.1f;
 
     void OnEnable() {
         creator = (PathCreator)target;
@@ -16,38 +17,75 @@ public class PathEditor : Editor {
         path = creator.path;
     }
 
-
     void OnSceneGUI() {
         Draw();
-        Input();
+        HandleInput();
     }
 
-    void Input() {
+    void HandleInput() {
         Event current = Event.current;
-        if (current.type == EventType.MouseDown && current.button == 0 &&
-            current.shift) {
-            Undo.RecordObject(creator, "Add segment");
-            path.AddSegment(HandleUtility.GUIPointToWorldRay(current.mousePosition).origin);
+        if (current.type == EventType.MouseDown) {
+            Vector2 mouseWorldPos = HandleUtility.GUIPointToWorldRay(current.mousePosition).origin;
+            if (current.button == 0) {
+                // Adding an anchor
+                if (!current.shift) {
+                    return;
+                }
+                Undo.RecordObject(creator, "Add segment");
+                path.AddSegment(mouseWorldPos);
+            } else if (current.button == 1) {
+                // Removing an anchor
+                for (int i = 0; i < path.PointCount; i += 3) {
+                    const float kMinMouseDistance = kAnchorHandleSize * 0.5f;
+                    if ((mouseWorldPos - path[i]).sqrMagnitude <= kMinMouseDistance * kMinMouseDistance) {
+                        Undo.RecordObject(creator, "Delete segment");
+                        path.DeleteSegment(i);
+                        break;
+                    }
+                }
+            }
         }
     }
 
     void Draw() {
-        Handles.color = Color.red;
         for (int i = 0; i < path.PointCount; i++) {
+            if (!creator.showTangents && i % 3 != 0) {
+                continue;
+            }
+            // This was to try snapping. Use GUIUtility.hotControl to identify
+            // which handle is being MOVED. Set this id from the freeMoveHandle function (method override)
+            //if (Event.current.control && !hasSnapped) {
+            //    Vector2 anchor = path[mod == 1 ? i - 1 : i + 1];
+            //    Vector2 anchorToTangent = path[i] - anchor;
+            //    snap.x = Mathf.Abs(anchorToTangent.x);
+            //    snap.y = Mathf.Abs(anchorToTangent.y);
+            //    hasSnapped = true;
+            //}
+            float size = kAnchorHandleSize;
+            if (i == 0) {
+                Handles.color = Color.blue;
+            } else if (i % 3 != 0) {
+                Handles.color = Color.black;
+                size = kAnchorHandleSize * 0.65f;
+            } else {
+                Handles.color = Color.red;
+            }
             Vector2 newPos = Handles.FreeMoveHandle(path[i], Quaternion.identity,
-                0.1f, Vector3.zero, Handles.CylinderHandleCap);
+                size, Vector3.zero, Handles.CylinderHandleCap);
             if (newPos != path[i]) {
                 Undo.RecordObject(creator, "Move point");
                 path[i] = newPos;
             }
         }
-        Handles.color = Color.white;
+        Handles.color = Color.black;
         for (int i = 0; i < path.SegmentCount; i++) {
             Vector2[] segment = path.GetPointsInSegment(i);
             Handles.DrawBezier(segment[0], segment[3], segment[1], segment[2],
                 Color.green, null, 2f);
-            Handles.DrawLine(segment[1], segment[0]);
-            Handles.DrawLine(segment[2], segment[3]);
+            if (creator.showTangents) {
+                Handles.DrawLine(segment[1], segment[0]);
+                Handles.DrawLine(segment[2], segment[3]);
+            }
         }
     }
 
