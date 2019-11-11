@@ -8,6 +8,9 @@ public class PathEditor : Editor {
     Path path;
 
     const float kAnchorHandleSize = 0.1f;
+    const float kSegmentSelectMinDistance = 0.1f;
+
+    int selectedSegmentIndex = -1;
 
     void OnEnable() {
         creator = (PathCreator)target;
@@ -23,26 +26,54 @@ public class PathEditor : Editor {
     }
 
     void HandleInput() {
-        Event current = Event.current;
-        if (current.type == EventType.MouseDown) {
-            Vector2 mouseWorldPos = HandleUtility.GUIPointToWorldRay(current.mousePosition).origin;
-            if (current.button == 0) {
+        Event guiEvent = Event.current;
+        Vector2 mouseWorldPos = HandleUtility.GUIPointToWorldRay(guiEvent.mousePosition).origin;
+        if (guiEvent.type == EventType.MouseDown) {
+            if (guiEvent.button == 0) {
                 // Adding an anchor
-                if (!current.shift) {
-                    return;
-                }
-                Undo.RecordObject(creator, "Add segment");
-                path.AddSegment(mouseWorldPos);
-            } else if (current.button == 1) {
-                // Removing an anchor
-                for (int i = 0; i < path.PointCount; i += 3) {
-                    const float kMinMouseDistance = kAnchorHandleSize * 0.5f;
-                    if ((mouseWorldPos - path[i]).sqrMagnitude <= kMinMouseDistance * kMinMouseDistance) {
-                        Undo.RecordObject(creator, "Delete segment");
-                        path.DeleteSegment(i);
-                        break;
+                if (guiEvent.shift) {
+                    if (selectedSegmentIndex != -1) {
+                        Undo.RecordObject(creator, "Insert segment");
+                        path.SplitSegment(mouseWorldPos, selectedSegmentIndex);
+                    } else {
+                        Undo.RecordObject(creator, "Add segment");
+                        path.AddSegment(mouseWorldPos);
                     }
                 }
+            } else if (guiEvent.button == 1) {
+                // Removing an anchor
+                const float kMinMouseDistance = kAnchorHandleSize * 0.5f;
+                float shortestDistanceToAnchor = kMinMouseDistance;
+                int closestAnchorIndex = -1;
+                for (int i = 0; i < path.PointCount; i += 3) {
+                    float currentDistance = (mouseWorldPos - path[i]).sqrMagnitude;
+                    if (currentDistance < shortestDistanceToAnchor) {
+                        closestAnchorIndex = i;
+                        shortestDistanceToAnchor = currentDistance;
+                    }
+                }
+                if (closestAnchorIndex != -1) {
+                    Undo.RecordObject(creator, "Delete segment");
+                    path.DeleteSegment(closestAnchorIndex);
+                }
+            }
+        }
+
+        if (guiEvent.type == EventType.MouseMove) {
+            int newSelectedSegmentIndex = -1;
+            float shortestDistanceToSegment = kSegmentSelectMinDistance;
+            for (int i = 0; i < path.SegmentCount; i++) {
+                Vector2[] points = path.GetPointsInSegment(i);
+                float currentDistance = HandleUtility.DistancePointBezier(mouseWorldPos, points[0],
+                    points[3], points[1], points[2]);
+                if (currentDistance < shortestDistanceToSegment) {
+                    newSelectedSegmentIndex = i;
+                    shortestDistanceToSegment = currentDistance;
+                }
+            }
+            if (newSelectedSegmentIndex != selectedSegmentIndex) {
+                selectedSegmentIndex = newSelectedSegmentIndex;
+                HandleUtility.Repaint();
             }
         }
     }
@@ -80,8 +111,9 @@ public class PathEditor : Editor {
         Handles.color = Color.black;
         for (int i = 0; i < path.SegmentCount; i++) {
             Vector2[] segment = path.GetPointsInSegment(i);
-            Handles.DrawBezier(segment[0], segment[3], segment[1], segment[2],
-                Color.green, null, 2f);
+            Color color = i == selectedSegmentIndex && Event.current.shift ?
+                Color.yellow : Color.green;
+            Handles.DrawBezier(segment[0], segment[3], segment[1], segment[2], color, null, 2f);
             if (creator.showTangents) {
                 Handles.DrawLine(segment[1], segment[0]);
                 Handles.DrawLine(segment[2], segment[3]);

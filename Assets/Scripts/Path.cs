@@ -82,6 +82,34 @@ public class Path {
         points.Add(anchorPos);
     }
 
+    public void SplitSegment(Vector2 anchorPos, int segmentIndex) {
+        Vector2[] newPoints = new Vector2[3];
+
+        float distanceToPreviousAnchor = (points[segmentIndex * 3] - anchorPos).sqrMagnitude;
+        float distanceToNextAnchor = (points[segmentIndex * 3 + 3] - anchorPos).sqrMagnitude;
+        int closestControlIndex = distanceToPreviousAnchor < distanceToNextAnchor ?
+            segmentIndex * 3 + 1 : segmentIndex * 3 + 2;
+        Vector2 closestControl = points[closestControlIndex];
+
+        int newControlIndex = ((closestControlIndex % 3) - 1) * 2;
+        newPoints[newControlIndex] = (closestControl + anchorPos) * 0.5f;
+        newPoints[1] = anchorPos;
+        newPoints[2 - newControlIndex] = (anchorPos * 2f) - newPoints[newControlIndex];
+
+        //if (distanceToPreviousAnchor < distanceToNextAnchor) {
+        //    Vector2 closestControl = points[segmentIndex * 3 + 1];
+        //    newPoints[0] = (closestControl + anchorPos) * 0.5f;
+        //    newPoints[2] = (anchorPos * 2f) - newPoints[0];
+        //} else {
+        //    Vector2 closestControl = points[segmentIndex * 3 + 2];
+        //    Vector2 newControl = (closestControl + anchorPos) * 0.5f;
+        //    newPoints[2] = (closestControl + anchorPos) * 0.5f;
+        //    newPoints[0] = (anchorPos * 2f) - newPoints[2];
+        //}
+
+        points.InsertRange(segmentIndex * 3 + 2, newPoints);
+    }
+
     public void DeleteSegment(int anchorIndex) {
         if (anchorIndex != 0) {
             if (anchorIndex != points.Count - 1) {
