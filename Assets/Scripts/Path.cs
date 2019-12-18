@@ -113,4 +113,28 @@ public class Path {
         return new Vector2[4] { points[i*3], points[i*3 + 1],
             points[i*3 + 2], points[i*3 + 3] };
     }
+
+    public void CalculateEvenlySpacedPoints() {
+        float curveLength = GetCurveLength();
+    }
+
+    float GetCurveLength() {
+        const int kCurveLengthPrecision = 50;
+        float magnitudeSum = 0f;
+        for (int i = 0; i < SegmentCount; i++) {
+            Vector2[] segmentPoints = GetPointsInSegment(i);
+            Vector2 previousPoint = segmentPoints[0];
+            for (int j = 1; j < kCurveLengthPrecision; j++) {
+                Vector2 pointOnCurve = CalculateBezier(segmentPoints[0], segmentPoints[1],
+                    segmentPoints[2], segmentPoints[3], (float)j / (kCurveLengthPrecision - 1));
+                magnitudeSum += (pointOnCurve - previousPoint).magnitude;
+                previousPoint = pointOnCurve;
+            }
+        }
+        return magnitudeSum;
+    }
+
+    Vector2 CalculateBezier(Vector2 a, Vector2 b, Vector2 c, Vector2 d, float t) {
+        return a + 3f*(b-a)*t + 3f*(c-2*b+a)*t*t + (d-3*c+3*b-a)*t*t*t;
+    }
 }

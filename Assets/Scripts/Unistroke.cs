@@ -11,7 +11,7 @@ public class Unistroke {
     public List<Vector2> RawPoints => rawPoints;
 
     public List<Vector2> ProcessPoints() {
-        List<Vector2> resampledPoints = Resample();
+        List<Vector2> resampledPoints = ResampleToEvenlySpaced();
 
         // Only for debug purposes
         Vector2 centroid = ComputeCentroid(resampledPoints);
@@ -41,7 +41,7 @@ public class Unistroke {
         return resampledPoints;
     }
 
-    List<Vector2> Resample() {
+    List<Vector2> ResampleToEvenlySpaced() {
         float interval = GetPathLength(rawPoints) / (kProcessedPointCount - 1);
         float D = 0f;
         List<Vector2> sourcePoints = new List<Vector2>(rawPoints);
@@ -97,7 +97,7 @@ public class Unistroke {
         Debug.DrawRay(pos + (Vector2.down * 0.25f), Vector2.up * 0.5f, color, 2f);
     }
 
-    // Make move all the points so that the centroid is at the origin (0, 0)
+    // Move all the points so that the centroid is at the origin (0, 0)
     void TranslateCentroidToOrigin(List<Vector2> points, Vector2 centroid) {
         for (int i = 0; i < points.Count; i++) {
             points[i] -= centroid;
