@@ -10,6 +10,10 @@ public class PathCreator : MonoBehaviour {
         path = new Path(transform.position);
     }
 
+    void Start() {
+        path.CalculateEvenlySpacedPoints();
+    }
+
     void Reset() {
         CreatePath();
     }

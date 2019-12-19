@@ -42,7 +42,7 @@ public class Unistroke {
     }
 
     List<Vector2> ResampleToEvenlySpaced() {
-        float interval = GetPathLength(rawPoints) / (kProcessedPointCount - 1);
+        float spacing = GetPathLength(rawPoints) / (kProcessedPointCount - 1);
         float D = 0f;
         List<Vector2> sourcePoints = new List<Vector2>(rawPoints);
         List<Vector2> resultPoints = new List<Vector2>(kProcessedPointCount);
@@ -54,12 +54,12 @@ public class Unistroke {
 
             float distance = Vector2.Distance(point1, point2);
 
-            if ((D + distance) >= interval) {
+            if ((D + distance) >= spacing) {
                 // Using Thales theorem, we make a new vector with length = interval and
                 // with the same direction as the longest vector. It is a resize operation
                 Vector2 resizedVector = new Vector2 {
-                    x = point1.x + ((interval - D) * (point2.x - point1.x) / distance),
-                    y = point1.y + ((interval - D) * (point2.y - point1.y) / distance)
+                    x = point1.x + ((spacing - D) * (point2.x - point1.x) / distance),
+                    y = point1.y + ((spacing - D) * (point2.y - point1.y) / distance)
                 };
                 resultPoints.Add(resizedVector);
                 sourcePoints.Insert(i, resizedVector);

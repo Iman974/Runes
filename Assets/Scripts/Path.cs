@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using System.Collections.Generic;
+using System.Linq;
 
 [System.Serializable]
 public class Path {
@@ -115,21 +116,62 @@ public class Path {
     }
 
     public void CalculateEvenlySpacedPoints() {
-        float curveLength = GetCurveLength();
-    }
-
-    float GetCurveLength() {
-        const int kCurveLengthPrecision = 50;
-        float magnitudeSum = 0f;
+        float[] curveLengthsInSegment = new float[SegmentCount];
         for (int i = 0; i < SegmentCount; i++) {
+            curveLengthsInSegment[i] = GetCurveLengthInSegment(i);
+        }
+        float spacing = curveLengthsInSegment.Sum() / (Unistroke.kProcessedPointCount - 1);
+        float D = 0f;
+        List<Vector2> resultPoints = new List<Vector2>(Unistroke.kProcessedPointCount);
+        resultPoints.Add(points[0]);
+
+        for (int i = 0; i < SegmentCount; i++) {
+            const int kResolution = 8;
+            int divisions = Mathf.CeilToInt(curveLengthsInSegment[i] * kResolution);
             Vector2[] segmentPoints = GetPointsInSegment(i);
             Vector2 previousPoint = segmentPoints[0];
-            for (int j = 1; j < kCurveLengthPrecision; j++) {
+            for (int j = 1; j <= divisions; j++) {
                 Vector2 pointOnCurve = CalculateBezier(segmentPoints[0], segmentPoints[1],
-                    segmentPoints[2], segmentPoints[3], (float)j / (kCurveLengthPrecision - 1));
-                magnitudeSum += (pointOnCurve - previousPoint).magnitude;
-                previousPoint = pointOnCurve;
+                    segmentPoints[2], segmentPoints[3], j / (float)divisions);
+                float distance = Vector2.Distance(pointOnCurve, previousPoint);
+
+                if (D + distance >= spacing) {
+                    // Using Thales theorem, we make a new vector with length = interval and
+                    // with the same direction as the longest vector. It is a resize operation
+                    Vector2 resizedVector = new Vector2 {
+                        x = previousPoint.x + ((spacing - D) * (pointOnCurve.x - previousPoint.x) / distance),
+                        y = previousPoint.y + ((spacing - D) * (pointOnCurve.y - previousPoint.y) / distance)
+                    };
+                    resultPoints.Add(resizedVector);
+                    Debug.DrawLine(resizedVector + Vector2.left * 0.03f, resizedVector + Vector2.right * 0.03f,
+                        Color.magenta, 100f);
+                    Debug.DrawLine(resizedVector + Vector2.up * 0.03f, resizedVector + Vector2.down * 0.03f,
+                        Color.magenta, 100f);
+                    previousPoint = resizedVector;
+                    D = 0f;
+                } else {
+                    // If vector's length is smaller than interval
+                    previousPoint = pointOnCurve;
+                    D += distance;
+                }
             }
+        }
+        // sometimes we fall a rounding-error short of adding the last point, so add it if so
+        if (resultPoints.Count == Unistroke.kProcessedPointCount - 1) {
+            resultPoints.Add(points[points.Count - 1]);
+        }
+    }
+
+    float GetCurveLengthInSegment(int segmentIndex) {
+        const int kPrecision = 50;
+        float magnitudeSum = 0f;
+        Vector2[] segmentPoints = GetPointsInSegment(segmentIndex);
+        Vector2 previousPoint = segmentPoints[0];
+        for (int j = 1; j <= kPrecision; j++) {
+            Vector2 pointOnCurve = CalculateBezier(segmentPoints[0], segmentPoints[1],
+                segmentPoints[2], segmentPoints[3], j / (float)kPrecision );
+            magnitudeSum += (pointOnCurve - previousPoint).magnitude;
+            previousPoint = pointOnCurve;
         }
         return magnitudeSum;
     }
