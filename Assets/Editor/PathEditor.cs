@@ -96,7 +96,7 @@ public class PathEditor : Editor {
             if (i == 0) {
                 Handles.color = Color.blue;
             } else if (i % 3 != 0) {
-                Handles.color = Color.black;
+                Handles.color = Color.gray;
                 size = kAnchorHandleSize * 0.65f;
             } else {
                 Handles.color = Color.red;
@@ -108,7 +108,7 @@ public class PathEditor : Editor {
                 Path[i] = newPos;
             }
         }
-        Handles.color = Color.black;
+        Handles.color = Color.gray;
         for (int i = 0; i < Path.SegmentCount; i++) {
             Vector2[] segment = Path.GetPointsInSegment(i);
             Color color = i == selectedSegmentIndex && Event.current.shift ?

@@ -23,7 +23,7 @@ public class PathTest : MonoBehaviour {
 
         // Recognize !
         float a = 0, b = 0;
-        for (int i = 0; i < Unistroke.kProcessedPointCount; i++) {
+        for (int i = 0; i < Unistroke.kEvenPointCount; i++) {
             a += Vector2.Dot(templatePoints[i], userPoints[i]);
             b += (templatePoints[i].x * userPoints[i].y) - (templatePoints[i].y * userPoints[i].x);
         }

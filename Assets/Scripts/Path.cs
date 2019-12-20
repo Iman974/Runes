@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections.Generic;
 using System.Linq;
+using System.Collections;
 
 [System.Serializable]
 public class Path {
@@ -115,51 +116,52 @@ public class Path {
             points[i*3 + 2], points[i*3 + 3] };
     }
 
-    public void CalculateEvenlySpacedPoints() {
+    public Vector2[] CalculateEvenlySpacedPoints() {
         float[] curveLengthsInSegment = new float[SegmentCount];
         for (int i = 0; i < SegmentCount; i++) {
             curveLengthsInSegment[i] = GetCurveLengthInSegment(i);
         }
-        float spacing = curveLengthsInSegment.Sum() / (Unistroke.kProcessedPointCount - 1);
+
+        float spacing = curveLengthsInSegment.Sum() / (Unistroke.kEvenPointCount - 1);
+        Vector2[] resultPoints = new Vector2[Unistroke.kEvenPointCount];
+        resultPoints[0] = points[0];
         float D = 0f;
-        List<Vector2> resultPoints = new List<Vector2>(Unistroke.kProcessedPointCount);
-        resultPoints.Add(points[0]);
+        int resultPointIndex = 1;
 
         for (int i = 0; i < SegmentCount; i++) {
-            const int kResolution = 8;
-            int divisions = Mathf.CeilToInt(curveLengthsInSegment[i] * kResolution);
+            const int kResolution = 10;
+            int divisions = Mathf.CeilToInt(curveLengthsInSegment[i]) * kResolution;
             Vector2[] segmentPoints = GetPointsInSegment(i);
             Vector2 previousPoint = segmentPoints[0];
             for (int j = 1; j <= divisions; j++) {
                 Vector2 pointOnCurve = CalculateBezier(segmentPoints[0], segmentPoints[1],
                     segmentPoints[2], segmentPoints[3], j / (float)divisions);
-                float distance = Vector2.Distance(pointOnCurve, previousPoint);
+                float distanceSinceLastEvenPoint = Vector2.Distance(pointOnCurve, previousPoint);
 
-                if (D + distance >= spacing) {
+                while (D + distanceSinceLastEvenPoint >= spacing) {
                     // Using Thales theorem, we make a new vector with length = interval and
                     // with the same direction as the longest vector. It is a resize operation
                     Vector2 resizedVector = new Vector2 {
-                        x = previousPoint.x + ((spacing - D) * (pointOnCurve.x - previousPoint.x) / distance),
-                        y = previousPoint.y + ((spacing - D) * (pointOnCurve.y - previousPoint.y) / distance)
+                        x = previousPoint.x + ((spacing - D) * (pointOnCurve.x - previousPoint.x) /
+                            distanceSinceLastEvenPoint),
+                        y = previousPoint.y + ((spacing - D) * (pointOnCurve.y - previousPoint.y) /
+                            distanceSinceLastEvenPoint)
                     };
-                    resultPoints.Add(resizedVector);
-                    Debug.DrawLine(resizedVector + Vector2.left * 0.03f, resizedVector + Vector2.right * 0.03f,
-                        Color.magenta, 100f);
-                    Debug.DrawLine(resizedVector + Vector2.up * 0.03f, resizedVector + Vector2.down * 0.03f,
-                        Color.magenta, 100f);
+                    resultPoints[resultPointIndex] = resizedVector;
+                    resultPointIndex++;
                     previousPoint = resizedVector;
+                    distanceSinceLastEvenPoint -= spacing - D;
                     D = 0f;
-                } else {
-                    // If vector's length is smaller than interval
-                    previousPoint = pointOnCurve;
-                    D += distance;
                 }
+                previousPoint = pointOnCurve;
+                D += distanceSinceLastEvenPoint;
             }
         }
         // sometimes we fall a rounding-error short of adding the last point, so add it if so
-        if (resultPoints.Count == Unistroke.kProcessedPointCount - 1) {
-            resultPoints.Add(points[points.Count - 1]);
+        if (resultPointIndex == Unistroke.kEvenPointCount - 1) {
+            resultPoints[Unistroke.kEvenPointCount - 1] = points[points.Count - 1];
         }
+        return resultPoints;
     }
 
     float GetCurveLengthInSegment(int segmentIndex) {
