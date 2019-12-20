@@ -1,7 +1,6 @@
 ﻿using UnityEngine;
 using System.Collections.Generic;
 using System.Linq;
-using System.Collections;
 
 [System.Serializable]
 public class Path {
@@ -117,17 +116,19 @@ public class Path {
     }
 
     public Vector2[] CalculateEvenlySpacedPoints() {
+        // First pass to calculate the total curve length
         float[] curveLengthsInSegment = new float[SegmentCount];
         for (int i = 0; i < SegmentCount; i++) {
             curveLengthsInSegment[i] = GetCurveLengthInSegment(i);
         }
-
         float spacing = curveLengthsInSegment.Sum() / (Unistroke.kEvenPointCount - 1);
+
         Vector2[] resultPoints = new Vector2[Unistroke.kEvenPointCount];
         resultPoints[0] = points[0];
-        float D = 0f;
+        float remainingDistance = 0f;
         int resultPointIndex = 1;
 
+        // Second pass to calculate the evenly spaced points
         for (int i = 0; i < SegmentCount; i++) {
             const int kResolution = 10;
             int divisions = Mathf.CeilToInt(curveLengthsInSegment[i]) * kResolution;
@@ -136,28 +137,33 @@ public class Path {
             for (int j = 1; j <= divisions; j++) {
                 Vector2 pointOnCurve = CalculateBezier(segmentPoints[0], segmentPoints[1],
                     segmentPoints[2], segmentPoints[3], j / (float)divisions);
+
                 float distanceSinceLastEvenPoint = Vector2.Distance(pointOnCurve, previousPoint);
 
-                while (D + distanceSinceLastEvenPoint >= spacing) {
-                    // Using Thales theorem, we make a new vector with length = interval and
+                // During this loop, new points will be placed between the previous and the current one
+                // until the distance from the newly placed point to the current one is shorter than spacing
+                while (remainingDistance + distanceSinceLastEvenPoint >= spacing) {
+                    // Using Thales theorem, we make a new vector with length = spacing and
                     // with the same direction as the longest vector. It is a resize operation
-                    Vector2 resizedVector = new Vector2 {
-                        x = previousPoint.x + ((spacing - D) * (pointOnCurve.x - previousPoint.x) /
-                            distanceSinceLastEvenPoint),
-                        y = previousPoint.y + ((spacing - D) * (pointOnCurve.y - previousPoint.y) /
-                            distanceSinceLastEvenPoint)
+                    Vector2 newEvenPoint = new Vector2 {
+                        x = previousPoint.x + (spacing - remainingDistance) *
+                            (pointOnCurve.x - previousPoint.x) / distanceSinceLastEvenPoint,
+                        y = previousPoint.y + ((spacing - remainingDistance) *
+                            (pointOnCurve.y - previousPoint.y) / distanceSinceLastEvenPoint)
                     };
-                    resultPoints[resultPointIndex] = resizedVector;
+                    resultPoints[resultPointIndex] = newEvenPoint;
                     resultPointIndex++;
-                    previousPoint = resizedVector;
-                    distanceSinceLastEvenPoint -= spacing - D;
-                    D = 0f;
+                    previousPoint = newEvenPoint;
+                    distanceSinceLastEvenPoint -= spacing - remainingDistance;
+                    remainingDistance = 0f;
                 }
                 previousPoint = pointOnCurve;
-                D += distanceSinceLastEvenPoint;
+
+                // remainingDistance is always shorter than spacing
+                remainingDistance += distanceSinceLastEvenPoint;
             }
         }
-        // sometimes we fall a rounding-error short of adding the last point, so add it if so
+        // Sometimes we fall a rounding-error short of adding the last point, so add it if so
         if (resultPointIndex == Unistroke.kEvenPointCount - 1) {
             resultPoints[Unistroke.kEvenPointCount - 1] = points[points.Count - 1];
         }
@@ -166,16 +172,16 @@ public class Path {
 
     float GetCurveLengthInSegment(int segmentIndex) {
         const int kPrecision = 50;
-        float magnitudeSum = 0f;
+        float lengthSum = 0f;
         Vector2[] segmentPoints = GetPointsInSegment(segmentIndex);
         Vector2 previousPoint = segmentPoints[0];
         for (int j = 1; j <= kPrecision; j++) {
             Vector2 pointOnCurve = CalculateBezier(segmentPoints[0], segmentPoints[1],
                 segmentPoints[2], segmentPoints[3], j / (float)kPrecision );
-            magnitudeSum += (pointOnCurve - previousPoint).magnitude;
+            lengthSum += (pointOnCurve - previousPoint).magnitude;
             previousPoint = pointOnCurve;
         }
-        return magnitudeSum;
+        return lengthSum;
     }
 
     Vector2 CalculateBezier(Vector2 a, Vector2 b, Vector2 c, Vector2 d, float t) {
