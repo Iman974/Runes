@@ -7,20 +7,37 @@ public class PathTest : MonoBehaviour {
     [SerializeField] PathCreator templatePathCreator = null;
 
     //public List<Vector2> TemplateRawPoints => template.RawPoints;
-    //public List<Vector2> UserRawPoints => userStroke.RawPoints;
+    public List<Vector2> UserRawPoints => userStroke.RawPoints;
+
     public bool oSensitive;
+    public bool usePresetUserPoints;
+    public bool regenerate;
+    public float sensibility = 0.04f;
+    public float minPointDst = 0.02f;
 
     bool isRecording;
     Camera mainCamera;
     Path template;
-    Unistroke userStroke = new Unistroke();
+    [SerializeField] Unistroke userStroke = new Unistroke();
 
     void Start() {
         mainCamera = Camera.main;
         template = templatePathCreator.Path;
+        if (usePresetUserPoints) {
+            Recognize();
+        }
+        Application.targetFrameRate = 25;
+        QualitySettings.vSyncCount = 0;
     }
 
     void Update() {
+        if (usePresetUserPoints) {
+            if (regenerate) {
+                Recognize();
+                regenerate = false;
+            }
+            return;
+        }
         List<Vector2> userRawPoints = userStroke.RawPoints;
 #if UNITY_STANDALONE
         if (Input.GetMouseButtonDown(0)) {
@@ -30,12 +47,11 @@ public class PathTest : MonoBehaviour {
             if (!isRecording) {
                 return;
             }
-            if (InputUtility.MouseDelta.sqrMagnitude > 0.05f * 0.05f) {
+            if (InputUtility.MouseDelta.sqrMagnitude >= 0.05f * 0.05f) {
                 userRawPoints.Add(InputUtility.WorldMousePosition);
                 int count = userRawPoints.Count;
                 if (count >= 2) {
-                    Debug.DrawLine(userRawPoints[count - 2], userRawPoints[count - 1], Color.magenta,
-                        2f);
+                    Debug.DrawLine(userRawPoints[count - 2], userRawPoints[count - 1], Color.magenta, 2f);
                 }
             } else if (userRawPoints.Count > 0) {
                 isRecording = false;
@@ -46,7 +62,34 @@ public class PathTest : MonoBehaviour {
             Recognize();
         }
 #elif UNITY_ANDROID
-        
+        if (Input.touchCount == 0) {
+            return;
+        }
+        Touch touch = Input.GetTouch(0);
+        if (touch.deltaPosition.sqrMagnitude >= sensibility * sensibility) {
+            if (!isRecording) {
+                Debug.LogWarning("Started recording");
+                isRecording = true;
+                userStroke.RawPoints.Clear();
+            }
+            int count = userRawPoints.Count;
+            Vector2 newPos = InputUtility.WorldMousePosition;
+            if (count == 0) {
+                userRawPoints.Add(InputUtility.WorldMousePosition);
+            } else if ((newPos - userRawPoints[count - 1]).sqrMagnitude >= minPointDst * minPointDst) {
+                userRawPoints.Add(InputUtility.WorldMousePosition);
+                if (count >= 2) {
+                    Debug.DrawLine(userRawPoints[count - 2], userRawPoints[count - 1], Color.magenta, 4f);
+                }
+            } else {
+                Debug.Log("Canceled point");
+            }
+        }
+        if (touch.phase == TouchPhase.Ended) {
+            Debug.LogWarning("Recording is over");
+            isRecording = false;
+            Recognize();
+        }
 #endif
     }
 
@@ -115,6 +158,17 @@ public class PathTest : MonoBehaviour {
     void TranslateCentroidToOrigin(Vector2[] points, Vector2 centroid) {
         for (int i = 0; i < points.Length; i++) {
             points[i] -= centroid;
+        }
+    }
+
+    private void OnDrawGizmosSelected() {
+        if (userStroke.RawPoints.Count == 0) {
+            return;
+        }
+        Gizmos.color = Color.cyan;
+        var rawTemplatePoints = userStroke.RawPoints;
+        for (int i = 1; i < rawTemplatePoints.Count; i++) {
+            Gizmos.DrawLine(rawTemplatePoints[i - 1], rawTemplatePoints[i]);
         }
     }
 }

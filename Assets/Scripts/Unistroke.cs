@@ -6,38 +6,8 @@ public class Unistroke {
 
     public const int kEvenPointCount = 32;
 
-    public List<Vector2> RawPoints { get; } = new List<Vector2>();
-
-    //public List<Vector2> ProcessPoints() {
-    //    List<Vector2> resampledPoints = ResampleToEvenlySpaced();
-
-    //    // Only for debug purposes
-    //    Vector2 centroid = ComputeCentroid(resampledPoints);
-    //    //DrawCentroid(centroid, Color.cyan);
-
-    //    TranslateCentroidToOrigin(resampledPoints, centroid);
-    //    //DrawCentroid(ComputeCentroid(resampledPoints), Color.green);
-    //    for (int i = 1; i < resampledPoints.Count; i++) {
-    //        Debug.DrawLine(resampledPoints[i - 1], resampledPoints[i], Color.green, 2f);
-    //    }
-
-    //    float delta = -Mathf.Atan2(resampledPoints[0].y, resampledPoints[0].x);
-    //    float sum = 0;
-    //    // Rotate the template so that the first point is at 0 radians
-    //    for (int i = 0; i < resampledPoints.Count; i++) {
-    //        resampledPoints[i] = Matrix2x2.CreateRotation(delta) * resampledPoints[i];
-    //        sum += resampledPoints[i].sqrMagnitude;
-    //    }
-    //    // Resize the whole template to a normalized size (using cosine distances)
-    //    float magnitude = Mathf.Sqrt(sum);
-    //    for (int i = 0; i < resampledPoints.Count; i++) {
-    //        resampledPoints[i] /= magnitude;
-    //        //if (i > 0) {
-    //        //    Debug.DrawLine(resampledPoints[i - 1], resampledPoints[i], Color.red, 2f);
-    //        //}
-    //    }
-    //    return resampledPoints;
-    //}
+    [SerializeField] List<Vector2> rawPoints = new List<Vector2>();
+    public List<Vector2> RawPoints => rawPoints;
 
     public Vector2[] ComputeEvenlySpacedPoints() {
         float spacing = GetPathLength(RawPoints) / (kEvenPointCount - 1);
@@ -65,7 +35,8 @@ public class Unistroke {
                 sourcePoints.Insert(i, resizedVector);
                 remainingDistance = 0f;
             } else {
-                // If vector's length is smaller than interval
+                // If vector's length is smaller than interval.
+                // The variable remainingDistance is always smaller than spacing
                 remainingDistance += distanceSinceLastEvenPoint;
             }
         }
@@ -83,24 +54,4 @@ public class Unistroke {
         }
         return length;
     }
-
-    //Vector2 ComputeCentroid(List<Vector2> points) {
-    //    Vector2 centroid = Vector2.zero;
-    //    foreach (Vector2 point in points) {
-    //        centroid += point;
-    //    }
-    //    return centroid / points.Count;
-    //}
-
-    //void DrawCentroid(Vector2 pos, Color color) {
-    //    Debug.DrawRay(pos + (Vector2.left * 0.25f), Vector2.right * 0.5f, color, 2f);
-    //    Debug.DrawRay(pos + (Vector2.down * 0.25f), Vector2.up * 0.5f, color, 2f);
-    //}
-
-    //// Move all the points so that the centroid is at the origin (0, 0)
-    //void TranslateCentroidToOrigin(List<Vector2> points, Vector2 centroid) {
-    //    for (int i = 0; i < points.Count; i++) {
-    //        points[i] -= centroid;
-    //    }
-    //}
 }
