@@ -6,7 +6,7 @@ public class PathEditor : Editor {
 
     PathCreator creator;
 
-    Path Path => creator.path;
+    Path Path => creator.Path;
 
     const float kAnchorHandleSize = 0.1f;
     const float kSegmentSelectMinDistance = 0.1f;
@@ -15,7 +15,7 @@ public class PathEditor : Editor {
 
     void OnEnable() {
         creator = (PathCreator)target;
-        if (creator.path == null) {
+        if (creator.Path == null) {
             creator.CreatePath();
         }
     }

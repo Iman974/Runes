@@ -115,7 +115,7 @@ public class Path {
             points[i*3 + 2], points[i*3 + 3] };
     }
 
-    public Vector2[] CalculateEvenlySpacedPoints() {
+    public Vector2[] ComputeEvenlySpacedPoints() {
         // First pass to calculate the total curve length
         float[] curveLengthsInSegment = new float[SegmentCount];
         for (int i = 0; i < SegmentCount; i++) {
@@ -135,7 +135,7 @@ public class Path {
             Vector2[] segmentPoints = GetPointsInSegment(i);
             Vector2 previousPoint = segmentPoints[0];
             for (int j = 1; j <= divisions; j++) {
-                Vector2 pointOnCurve = CalculateBezier(segmentPoints[0], segmentPoints[1],
+                Vector2 pointOnCurve = ComputeBezier(segmentPoints[0], segmentPoints[1],
                     segmentPoints[2], segmentPoints[3], j / (float)divisions);
 
                 float distanceSinceLastEvenPoint = Vector2.Distance(pointOnCurve, previousPoint);
@@ -176,7 +176,7 @@ public class Path {
         Vector2[] segmentPoints = GetPointsInSegment(segmentIndex);
         Vector2 previousPoint = segmentPoints[0];
         for (int j = 1; j <= kPrecision; j++) {
-            Vector2 pointOnCurve = CalculateBezier(segmentPoints[0], segmentPoints[1],
+            Vector2 pointOnCurve = ComputeBezier(segmentPoints[0], segmentPoints[1],
                 segmentPoints[2], segmentPoints[3], j / (float)kPrecision );
             lengthSum += (pointOnCurve - previousPoint).magnitude;
             previousPoint = pointOnCurve;
@@ -184,7 +184,7 @@ public class Path {
         return lengthSum;
     }
 
-    Vector2 CalculateBezier(Vector2 a, Vector2 b, Vector2 c, Vector2 d, float t) {
+    Vector2 ComputeBezier(Vector2 a, Vector2 b, Vector2 c, Vector2 d, float t) {
         return a + 3f*(b-a)*t + 3f*(c-2*b+a)*t*t + (d-3*c+3*b-a)*t*t*t;
     }
 }
